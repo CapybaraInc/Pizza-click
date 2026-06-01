@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, minimum-scale=1.0, viewport-fit=cover">
+  <title>Пицца-кликер 🍕</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    }
+    body {
+      background: #3b2c1c;
+      background-image: radial-gradient(circle at 30% 20%, #5a3e2b 5%, #2c1e10 90%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
+      margin: 0;
+    }
+    .game-container {
+      max-width: 480px;
+      width: 100%;
+      background: rgba(44, 30, 16, 0.8);
+      backdrop-filter: blur(10px);
+      border-radius: 48px 48px 32px 32px;
+      padding: 24px 16px 20px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.6), inset 0 2px 4px rgba(255,255,200,0.2);
+      border: 2px solid #d98c2e;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      position: relative;
+    }
+    .score-section {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      background: rgba(0,0,0,0.4);
+      border-radius: 80px;
+      padding: 12px 28px;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.5), inset 0 2px 6px rgba(255,200,100,0.6);
+      border: 1px solid #ffb84d;
+      width: fit-content;
+      max-width: 100%;
+    }
+    .score-icon {
+      font-size: 2.4rem;
+      filter: drop-shadow(0 4px 6px black);
+    }
+    .score-value {
+      font-size: 3.2rem;
+      font-weight: 800;
+      color: #ffdd88;
+      text-shadow: 0 0 12px #ffaa00, 0 4px 8px black;
+      letter-spacing: 2px;
+      transition: transform 0.2s ease;
+      line-height: 1;
+    }
+    .pizza-button-wrapper {
+      position: relative;
+      margin: 8px 0;
+    }
+    .pizza-button {
+      background: radial-gradient(circle at 30% 30%, #ff8c42, #c4450c);
+      width: 180px;
+      height: 180px;
+      border-radius: 50%;
+      border: 6px solid #fdd48c;
+      box-shadow: 0 20px 35px rgba(0,0,0,0.7), 0 0 0 8px rgba(180, 80, 20, 0.5), inset 0 -8px 0 rgba(0,0,0,0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 5.5rem;
+      cursor: pointer;
+      transition: all 0.08s ease;
+      position: relative;
+      color: #fff0d0;
+      text-shadow: 2px 4px 6px black;
+      margin: 0 auto;
+      transform: scale(1);
+    }
+    .pizza-button:active {
+      transform: scale(0.92);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.8), 0 0 0 6px rgba(255,140,30,0.8), inset 0 -4px 0 rgba(0,0,0,0.4);
+      background: radial-gradient(circle at 30% 30%, #ff7730, #b03a08);
+      transition: 0.04s;
+    }
+    .floating-number {
+      position: absolute;
+      font-weight: 900;
+      font-size: 1.8rem;
+      color: #ffd966;
+      text-shadow: 0 0 10px #ffaa00, 0 2px 6px black;
+      pointer-events: none;
+      animation: floatUp 1s ease-out forwards;
+      z-index: 20;
+      left: 50%;
+      top: 40%;
+      transform: translate(-50%, 0);
+      white-space: nowrap;
+    }
+    @keyframes floatUp {
+      0% { opacity: 1; transform: translate(-50%, 0) scale(1); }
+      100% { opacity: 0; transform: translate(-50%, -70px) scale(1.5); }
+    }
+    .upgrades-panel {
+      width: 100%;
+      background: rgba(20, 12, 5, 0.7);
+      backdrop-filter: blur(16px);
+      border-radius: 32px;
+      padding: 16px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-height: 320px;
+      overflow-y: auto;
+      border: 1px solid #d98c2e;
+      box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+    }
+    .upgrade-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #2a1a0c;
+      border: 2px solid #cc7a1f;
+      border-radius: 24px;
+      padding: 12px 14px;
+      box-shadow: 0 6px 10px rgba(0,0,0,0.6);
+      transition: 0.2s;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .upgrade-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 2;
+      min-width: 140px;
+    }
+    .upgrade-icon {
+      font-size: 2rem;
+      background: rgba(0,0,0,0.4);
+      border-radius: 50%;
+      padding: 4px;
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .upgrade-text {
+      display: flex;
+      flex-direction: column;
+    }
+    .upgrade-name {
+      font-weight: 700;
+      color: #ffe2a8;
+      font-size: 0.9rem;
+    }
+    .upgrade-effect {
+      font-size: 0.7rem;
+      color: #c0a070;
+    }
+    .upgrade-cost {
+      background: #1f1408;
+      border-radius: 20px;
+      padding: 6px 14px;
+      color: #ffbb4d;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.9rem;
+      margin-right: 6px;
+    }
+    .buy-button {
+      background: #f08a24;
+      border: none;
+      border-radius: 30px;
+      padding: 10px 18px;
+      font-weight: bold;
+      color: #251700;
+      background: linear-gradient(180deg, #ffb347 0%, #d86f1a 100%);
+      box-shadow: 0 4px 0 #7b3e00, 0 6px 10px black;
+      cursor: pointer;
+      transition: 0.1s linear;
+      font-size: 0.85rem;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .buy-button:active {
+      transform: translateY(2px);
+      box-shadow: 0 2px 0 #5a2c00, 0 4px 8px black;
+    }
+    .buy-button.disabled {
+      background: #5a4a3a;
+      background: linear-gradient(180deg, #6b5a4a, #3f3324);
+      box-shadow: 0 4px 0 #2f2419;
+      color: #aaa;
+      pointer-events: none;
+      cursor: default;
+    }
+    .achievement-message {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: gold;
+      color: #2c1e10;
+      font-weight: bold;
+      padding: 14px 28px;
+      border-radius: 40px;
+      font-size: 1.2rem;
+      z-index: 100;
+      box-shadow: 0 10px 25px black;
+      animation: fadeGold 2s ease-out forwards;
+      white-space: nowrap;
+    }
+    @keyframes fadeGold {
+      0% { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+      15% { opacity: 1; transform: translateX(-50%) translateY(0); }
+      80% { opacity: 1; }
+      100% { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+    }
+  </style>
+</head>
+<body>
+<div class="game-container" id="gameContainer">
+  <div class="score-section">
+    <span class="score-icon">🍕</span>
+    <span class="score-value" id="scoreDisplay">0</span>
+  </div>
+
+  <div class="pizza-button-wrapper" id="pizzaWrapper">
+    <div class="pizza-button" id="pizzaButton">
+      🍕
+    </div>
+  </div>
+
+  <div class="upgrades-panel" id="upgradesPanel"></div>
+</div>
+
+<script>
+  (function() {
+    // Состояние игры
+    let score = 0;
+    let clickValue = 1;
+    let passivePerSecond = 0;
+
+    // Прокачки: id, название, эмодзи, эффект (тип: 'click' или 'passive'), значение, цена
+    const upgrades = [
+      { id: 1, name: "Двойной клик", emoji: "🍕", type: "click", value: 2, baseCost: 50, description: "Каждый клик = +2 очка" },
+      { id: 2, name: "Пицца-помощник", emoji: "🧑‍🍳", type: "passive", value: 1, baseCost: 30, description: "+1 очко в секунду" },
+      { id: 3, name: "Горячая доставка", emoji: "🔥", type: "click", value: 5, baseCost: 200, description: "Каждый клик = +5 очков" },
+      { id: 4, name: "Курьер на велосипеде", emoji: "🚲", type: "passive", value: 3, baseCost: 150, description: "+3 очка в секунду" },
+      { id: 5, name: "Пиццерия", emoji: "🍕", type: "passive", value: 10, baseCost: 500, description: "+10 очков в секунду" },
+      { id: 6, name: "Энергетик", emoji: "⚡", type: "click", value: 15, baseCost: 800, description: "Каждый клик = +15 очков" },
+      { id: 7, name: "Спортивный скутер", emoji: "🏎️", type: "passive", value: 25, baseCost: 1500, description: "+25 очков в секунду" },
+      { id: 8, name: "Инвестор в пиццу", emoji: "💰", type: "passive", value: 50, baseCost: 3000, description: "+50 очков в секунду" },
+      { id: 9, name: "Летающая пицца", emoji: "🛸", type: "click", value: 50, baseCost: 5000, description: "Каждый клик = +50 очков" },
+      { id: 10, name: "Мега-пиццерия", emoji: "🏢", type: "passive", value: 100, baseCost: 10000, description: "+100 очков в секунду" }
+    ];
+
+    // Купленные уровни (сколько раз куплена каждая, для возможного масштабирования, но по условию эффект фиксирован)
+    let purchasedUpgrades = {};
+
+    // DOM элементы
+    const scoreDisplay = document.getElementById('scoreDisplay');
+    const pizzaButton = document.getElementById('pizzaButton');
+    const pizzaWrapper = document.getElementById('pizzaWrapper');
+    const upgradesPanel = document.getElementById('upgradesPanel');
+
+    // Флаг для достижения 1000
+    let achievementShown = false;
+
+    function updateUI() {
+      scoreDisplay.textContent = Math.floor(score).toLocaleString('ru-RU');
+      renderUpgrades();
+    }
+
+    // Создание летающего числа
+    function spawnFloatingNumber(x, y, amount) {
+      const floatDiv = document.createElement('div');
+      floatDiv.className = 'floating-number';
+      floatDiv.textContent = `+${amount}`;
+      // позиция относительно wrapper
+      floatDiv.style.left = `${x}px`;
+      floatDiv.style.top = `${y}px`;
+      pizzaWrapper.appendChild(floatDiv);
+      floatDiv.addEventListener('animationend', () => {
+        floatDiv.remove();
+      });
+    }
+
+    // Обработка клика по пицце
+    function handlePizzaClick(e) {
+      // Получаем координаты клика относительно pizzaWrapper для плавающих цифр
+      const rect = pizzaWrapper.getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+      const clickY = e.clientY - rect.top;
+
+      // Добавляем очки
+      score += clickValue;
+      spawnFloatingNumber(clickX, clickY, clickValue);
+
+      // Проверка на достижение
+      if (score >= 1000 && !achievementShown) {
+        achievementShown = true;
+        showAchievement('🍕 Ты — пицца-мастер!');
+      }
+
+      updateUI();
+      // Эффект пружины через CSS active, дополнительно не нужен
+    }
+
+    function showAchievement(text) {
+      const msg = document.createElement('div');
+      msg.className = 'achievement-message';
+      msg.textContent = text;
+      document.body.appendChild(msg);
+      setTimeout(() => msg.remove(), 2000);
+    }
+
+    // Покупка улучшения
+    function buyUpgrade(upgradeId) {
+      const upgrade = upgrades.find(u => u.id === upgradeId);
+      if (!upgrade) return;
+
+      const cost = upgrade.baseCost;
+      if (score < cost) return;
+
+      // Проверяем, не куплено ли уже (по условию каждая прокачка покупается один раз? В описании нет мультипокупки, делаем однократно)
+      if (purchasedUpgrades[upgradeId]) {
+        return; // уже куплено
+      }
+
+      // Списываем очки
+      score -= cost;
+      purchasedUpgrades[upgradeId] = true;
+
+      // Применяем эффект
+      if (upgrade.type === 'click') {
+        clickValue += upgrade.value; // накапливаем клик-силу (Двойной клик +2, Горячая +5 и т.д.)
+      } else if (upgrade.type === 'passive') {
+        passivePerSecond += upgrade.value;
+      }
+
+      // Визуальная вспышка (золотой свет) – кратковременный эффект на контейнере
+      const container = document.getElementById('gameContainer');
+      container.style.transition = '0.15s';
+      container.style.boxShadow = '0 0 40px gold, 0 20px 40px rgba(0,0,0,0.8)';
+      setTimeout(() => {
+        container.style.boxShadow = '0 20px 40px rgba(0,0,0,0.6), inset 0 2px 4px rgba(255,255,200,0.2)';
+        container.style.transition = '';
+      }, 200);
+
+      updateUI();
+    }
+
+    function renderUpgrades() {
+      upgradesPanel.innerHTML = '';
+      upgrades.forEach(upgrade => {
+        const isPurchased = purchasedUpgrades[upgrade.id];
+        const cost = upgrade.baseCost;
+        const canAfford = score >= cost && !isPurchased;
+
+        const card = document.createElement('div');
+        card.className = 'upgrade-card';
+
+        card.innerHTML = `
+          <div class="upgrade-info">
+            <span class="upgrade-icon">${upgrade.emoji}</span>
+            <div class="upgrade-text">
+              <span class="upgrade-name">${upgrade.name}</span>
+              <span class="upgrade-effect">${upgrade.description}</span>
+            </div>
+          </div>
+          <div class="upgrade-cost">
+            <span>${cost.toLocaleString()}</span> 🍕
+          </div>
+          <button class="buy-button ${!canAfford ? 'disabled' : ''}" data-id="${upgrade.id}">
+            ${isPurchased ? '✅' : 'Купить'}
+          </button>
+        `;
+
+        const button = card.querySelector('.buy-button');
+        if (!isPurchased && canAfford) {
+          button.addEventListener('click', (e) => {
+            e.stopPropagation();
+            buyUpgrade(upgrade.id);
+          });
+        } else if (isPurchased) {
+          button.disabled = true;
+        }
+
+        upgradesPanel.appendChild(card);
+      });
+    }
+
+    // Пассивный доход
+    setInterval(() => {
+      if (passivePerSecond > 0) {
+        score += passivePerSecond / 10; // обновляем 10 раз в секунду для плавности
+        // проверка достижения
+        if (score >= 1000 && !achievementShown) {
+          achievementShown = true;
+          showAchievement('🍕 Ты — пицца-мастер!');
+        }
+        updateUI();
+      }
+    }, 100);
+
+    // Инициализация
+    pizzaButton.addEventListener('click', handlePizzaClick);
+    // Предотвращение двойного тапа на мобильных
+    pizzaButton.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      handlePizzaClick(e);
+    });
+
+    updateUI();
+  })();
+</script>
+</body>
+</html>
